@@ -133,8 +133,8 @@ static constexpr T norm(ComplexField<T> a)
 	return a.real() * a.real() + a.imag() * a.imag();
 }
 
-template <typename T>
-static constexpr ComplexField<T> pow(ComplexField<T> a, int m)
+template <typename T, typename M>
+static constexpr ComplexField<T> pow(ComplexField<T> a, M m)
 {
 	ComplexField<T> t(T(1));
 	for (;m; m >>= 1, a *= a)

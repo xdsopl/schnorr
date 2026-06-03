@@ -17,6 +17,8 @@ int main(int argc, char **argv)
 	(void)argc; (void)argv;
 	CM31 G(M31(2), M31(1268011823));
 	assert(norm(G) == M31(1));
+	assert(pow(G, 1U << 30) == -CM31(M31(1)));
+	assert(pow(G, 1U << 31) == CM31(M31(1)));
 	CM31 tmp(G);
 	for (uint32_t i = 1; i < M31::P+1; ++i)
 		assert(norm(tmp *= G) == M31(1) && tmp != G);
