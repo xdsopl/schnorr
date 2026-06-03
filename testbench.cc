@@ -4,8 +4,10 @@ Playing with complex M31 prime field based Schnorr signatures
 Copyright 2026 Ahmet Inan <xdsopl@gmail.com>
 */
 
+#include <random>
 #include <cassert>
 #include <iostream>
+#include <functional>
 #include "prime_field.hh"
 #include "complex_field.hh"
 
@@ -27,6 +29,12 @@ int main(int argc, char **argv)
 		tmp *= G;
 		assert(tmp == G);
 	}
+	std::random_device rd;
+	std::default_random_engine generator(rd());
+	typedef std::uniform_int_distribution<int> distribution;
+	auto rnd_key = std::bind(distribution(2, order-1), generator);
+	uint32_t private_key = rnd_key();
+	CM31 fingerprint = pow(G, private_key);
 	return 0;
 }
 
