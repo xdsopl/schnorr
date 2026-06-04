@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 	auto rnd_key = std::bind(dist(2, order-1), gen);
 	// keypair
 	uint32_t private_key = rnd_key();
-	CM31 fingerprint = M31(1) / (pow(generator, private_key));
+	CM31 fingerprint = conj(pow(generator, private_key));
 	// message
 	const int length = 123;
 	uint8_t message[length];
