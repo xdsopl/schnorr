@@ -33,8 +33,29 @@ int main(int argc, char **argv)
 	std::default_random_engine generator(rd());
 	typedef std::uniform_int_distribution<int> distribution;
 	auto rnd_key = std::bind(distribution(2, order-1), generator);
+	// keypair
 	uint32_t private_key = rnd_key();
-	CM31 fingerprint = pow(G, private_key);
+	CM31 fingerprint = M31(1) / (pow(G, private_key));
+	// signing
+	uint32_t nonce = rnd_key();
+	CM31 point = pow(G, nonce);
+	const int msg_len = 123;
+	uint8_t message[msg_len];
+	auto rnd_dat = std::bind(distribution(0, 255), generator);
+	for (int i = 0; i < msg_len; ++i)
+		message[i] = rnd_dat();
+	uint32_t hash = point.real()() ^ point.imag()();
+	for (int i = 0; i < msg_len; ++i)
+		hash ^= message[i];
+	hash %= order;
+	uint32_t scalar = (nonce + (uint64_t(hash) * private_key)) % order;
+	// verification
+	CM31 point_v = pow(G, scalar) * pow(fingerprint, hash);
+	uint32_t hash_v = point_v.real()() ^ point_v.imag()();
+	for (int i = 0; i < msg_len; ++i)
+		hash_v ^= message[i];
+	hash_v %= order;
+	assert(hash == hash_v);
 	return 0;
 }
 
