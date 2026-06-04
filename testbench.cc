@@ -37,6 +37,22 @@ bool verify(CM31 fingerprint, uint32_t scalar, uint32_t check, const uint8_t *me
 	return check == hash(point, message, length);
 }
 
+uint32_t compress(CM31 point)
+{
+	uint32_t sign = point.imag()() & 1;
+	return point.real()() | (sign << 31);
+}
+
+CM31 decompress(uint32_t val)
+{
+	uint32_t sign = val >> 31;
+	M31 real(val & 0x7FFFFFFF);
+	M31 imag(pow(M31(1) - (real * real), 1U << 29));
+	if ((imag() & 1) != sign)
+		imag = -imag;
+	return CM31(real, imag);
+}
+
 int main(int argc, char **argv)
 {
 	(void)argc; (void)argv;
@@ -56,7 +72,7 @@ int main(int argc, char **argv)
 	auto rnd_key = std::bind(dist(2, order-1), gen);
 	// keypair
 	uint32_t private_key = rnd_key();
-	CM31 fingerprint = conj(pow(generator, private_key));
+	CM31 public_key = conj(pow(generator, private_key));
 	// message
 	const int length = 123;
 	uint8_t message[length];
@@ -66,8 +82,10 @@ int main(int argc, char **argv)
 	// signing
 	uint32_t scalar, check;
 	sign(private_key, rnd_key(), &scalar, &check, message, length);
+	// compression
+	uint32_t fingerprint = compress(public_key);
 	// verification
-	if (!verify(fingerprint, scalar, check, message, length)) {
+	if (!verify(decompress(fingerprint), scalar, check, message, length)) {
 		std::cerr << "verification failed!" << std::endl;
 		return 1;
 	}
