@@ -16,11 +16,31 @@ typedef CODE::ComplexField<M31> CM31;
 static const CM31 generator(M31(2), M31(1268011823));
 static const uint32_t order = M31::P + 1;
 
+uint32_t fnv1a_init()
+{
+	return 0x811C9DC5;
+}
+
+uint32_t fnv1a_update8(uint32_t prev, uint8_t data)
+{
+	return (prev ^ data) * 0x01000193;
+}
+
+uint32_t fnv1a_update32(uint32_t prev, uint32_t data)
+{
+	prev = fnv1a_update8(prev, data & 255);
+	prev = fnv1a_update8(prev, (data >> 8) & 255);
+	prev = fnv1a_update8(prev, (data >> 16) & 255);
+	return fnv1a_update8(prev, (data >> 24) & 255);
+}
+
 uint32_t hash(CM31 point, const uint8_t *message, int length)
 {
-	uint32_t hash = point.real()() ^ point.imag()();
+	uint32_t hash = fnv1a_init();
+	hash = fnv1a_update32(hash, point.real()());
+	hash = fnv1a_update32(hash, point.imag()());
 	for (int i = 0; i < length; ++i)
-		hash ^= message[i];
+		hash = fnv1a_update8(hash, message[i]);
 	return hash % order;
 }
 
