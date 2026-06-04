@@ -16,14 +16,25 @@ typedef CODE::ComplexField<M31> CM31;
 static const CM31 generator(M31(2), M31(1268011823));
 static const uint32_t order = M31::P + 1;
 
-bool verify(CM31 fingerprint, uint32_t scalar, uint32_t hash, uint8_t *message, int length)
+void sign(uint32_t private_key, uint32_t nonce, uint32_t *scalar, uint32_t *check, const uint8_t *message, int length)
 {
-	CM31 point_v = pow(generator, scalar) * pow(fingerprint, hash);
-	uint32_t hash_v = point_v.real()() ^ point_v.imag()();
+	CM31 point = pow(generator, nonce);
+	uint32_t hash = point.real()() ^ point.imag()();
 	for (int i = 0; i < length; ++i)
-		hash_v ^= message[i];
-	hash_v %= order;
-	return hash == hash_v;
+		hash ^= message[i];
+	hash %= order;
+	*check = hash;
+	*scalar = (nonce + (uint64_t(hash) * private_key)) % order;
+}
+
+bool verify(CM31 fingerprint, uint32_t scalar, uint32_t check, const uint8_t *message, int length)
+{
+	CM31 point = pow(generator, scalar) * pow(fingerprint, check);
+	uint32_t hash = point.real()() ^ point.imag()();
+	for (int i = 0; i < length; ++i)
+		hash ^= message[i];
+	hash %= order;
+	return hash == check;
 }
 
 int main(int argc, char **argv)
@@ -46,21 +57,17 @@ int main(int argc, char **argv)
 	// keypair
 	uint32_t private_key = rnd_key();
 	CM31 fingerprint = M31(1) / (pow(generator, private_key));
-	// signing
-	uint32_t nonce = rnd_key();
-	CM31 point = pow(generator, nonce);
+	// message
 	const int length = 123;
 	uint8_t message[length];
 	auto rnd_dat = std::bind(dist(0, 255), gen);
 	for (int i = 0; i < length; ++i)
 		message[i] = rnd_dat();
-	uint32_t hash = point.real()() ^ point.imag()();
-	for (int i = 0; i < length; ++i)
-		hash ^= message[i];
-	hash %= order;
-	uint32_t scalar = (nonce + (uint64_t(hash) * private_key)) % order;
+	// signing
+	uint32_t scalar, check;
+	sign(private_key, rnd_key(), &scalar, &check, message, length);
 	// verification
-	if (!verify(fingerprint, scalar, hash, message, length)) {
+	if (!verify(fingerprint, scalar, check, message, length)) {
 		std::cerr << "verification failed!" << std::endl;
 		return 1;
 	}
