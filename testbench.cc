@@ -56,6 +56,9 @@ CM31 decompress(uint32_t val)
 int main(int argc, char **argv)
 {
 	(void)argc; (void)argv;
+	M31 real(2);
+	M31 imag(pow(M31(1) - (real * real), 1U << 29));
+	assert(CM31(real, imag) == generator);
 	assert(norm(generator) == M31(1));
 	assert(pow(generator, order / 2) == -CM31(M31(1)));
 	assert(pow(generator, order) == CM31(M31(1)));
