@@ -10,7 +10,7 @@ all: testbench
 test: testbench
 	./testbench
 
-testbench: testbench.cc
+testbench: testbench.cc edwards_curve.hh
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 .PHONY: clean

@@ -1,5 +1,5 @@
 
-### Playing with complex M31 prime field based Schnorr signatures
+### Playing with Schnorr signatures based on Edwards curve over M31 prime field
 
 DISCLAIMER:
 
