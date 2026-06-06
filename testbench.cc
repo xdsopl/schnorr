@@ -73,6 +73,8 @@ int main(int argc, char **argv)
 				return 0;
 			}
 		}
+		std::cerr << "rats!" << std::endl;
+		return 1;
 	}
 	//std::cerr << "EC(" << x() << ", " << y() << ")"<< std::endl;
 	assert(EC(x, y) == generator);
