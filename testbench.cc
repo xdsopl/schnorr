@@ -67,11 +67,11 @@ int main(int argc, char **argv)
 		typedef EdwardsCurve<M31, d> EC;
 		M31 x(2);
 		M31 y(EC::findY(x));
-		std::cerr << "testing EC<" << d << ">(" << x() << ", " << y() << ") ";
+		std::cerr << "testing EC<" << d << ">(" << x() << ", " << y() << ")";
 		EC gen(x, y), tmp(gen);
 		for (uint32_t i = 1; i; ++i) {
 			if (!(i & 0xFFFFFFF))
-				std::cerr << ".";
+				std::cerr << " " << ((100 * (i >> 28)) / 16) << "%";
 			tmp += gen;
 			if (tmp == gen) {
 				std::cerr << std::endl << "order = " << i << std::endl;
