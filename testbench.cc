@@ -62,30 +62,33 @@ bool verify(EC fingerprint, uint32_t scalar, uint32_t check, const uint8_t *mess
 int main(int argc, char **argv)
 {
 	(void)argc; (void)argv;
-	M31 x(2);
-	M31 y(EC::findY(x));
 	if (0) {
+		const int d = 7;
+		typedef EdwardsCurve<M31, d> EC;
+		M31 x(2);
+		M31 y(EC::findY(x));
+		std::cerr << "testing EC<" << d << ">(" << x() << ", " << y() << ") ";
 		EC gen(x, y), tmp(gen);
-		for (uint32_t i = 1; i <= 0xFFFFFFFF; ++i) {
+		for (uint32_t i = 1; i; ++i) {
+			if (!(i & 0xFFFFFFF))
+				std::cerr << ".";
 			tmp += gen;
 			if (tmp == gen) {
-				std::cerr << "order = " << i << std::endl;
+				std::cerr << std::endl << "order = " << i << std::endl;
 				return 0;
 			}
 		}
-		std::cerr << "rats!" << std::endl;
+		std::cerr << std::endl << "rats!" << std::endl;
 		return 1;
 	}
-	//std::cerr << "EC(" << x() << ", " << y() << ")"<< std::endl;
-	assert(EC(x, y) == generator);
 	assert((total / 2) * generator == EC(M31(0), -M31(1)));
 	assert(total * generator == EC(M31(0), M31(1)));
 	if (0) {
-		EC tmp(generator);
-		for (uint32_t i = 1; i < total; ++i)
-			assert(generator != (tmp += generator));
-		tmp += generator;
-		assert(tmp == generator);
+		EC tmp(base);
+		for (uint32_t i = 1; i < order; ++i)
+			assert(base != (tmp += base));
+		tmp += base;
+		assert(tmp == base);
 	}
 	std::random_device rd;
 	std::default_random_engine rnd_gen(rd());
