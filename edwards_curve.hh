@@ -34,6 +34,12 @@ struct EdwardsCurve
 		uint32_t sign = y() & 1;
 		return x() | (sign << 31);
 	}
+	bool isValid() const
+	{
+		T xx = x * x;
+		T yy = y * y;
+		return xx + yy == T(1) + T(D) * xx * yy;
+	}
 };
 
 template <typename T, int D>

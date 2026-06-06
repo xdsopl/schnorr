@@ -70,6 +70,7 @@ int main(int argc, char **argv)
 		std::cerr << "testing EC<" << d << ">(" << x() << ", " << y() << ")";
 		EC gen(x, y), tmp(gen);
 		for (uint32_t i = 1; i; ++i) {
+			assert(tmp.isValid());
 			if (!(i & 0xFFFFFFF))
 				std::cerr << " " << ((100 * (i >> 28)) / 16) << "%";
 			tmp += gen;
