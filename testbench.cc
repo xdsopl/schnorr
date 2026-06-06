@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 				std::cerr << " " << ((100 * (i >> 28)) / 16) << "%";
 			tmp += gen;
 			if (tmp == gen) {
-				std::cerr << std::endl << "order = " << i << std::endl;
+				std::cerr << std::endl << "order = " << i << " twist = " << (2 * (M31::P + 1LL) - i) << std::endl;
 				return 0;
 			}
 		}
