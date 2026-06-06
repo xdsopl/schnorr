@@ -14,9 +14,11 @@ Copyright 2026 Ahmet Inan <xdsopl@gmail.com>
 typedef CODE::PrimeField<uint32_t, 0x7FFFFFFF> M31;
 typedef EdwardsCurve<M31, 7> EC;
 static const EC generator(M31(2), M31(715827882));
-static const EC base = 32U * generator;
+static const int cofactor_power = 5;
+static const uint32_t cofactor = 1 << 5;
+static const EC base = cofactor * generator;
 static const uint32_t order = 33553909;
-static const uint32_t total = order << 5;
+static const uint32_t total = order << cofactor_power;
 
 uint32_t fnv1a_init()
 {
