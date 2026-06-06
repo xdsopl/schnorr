@@ -11,15 +11,28 @@ struct EdwardsCurve
 {
 	T x, y;
 	EdwardsCurve(T x, T y) : x(x), y(y) {}
-	EdwardsCurve<T, D> operator += (EdwardsCurve<T, D> a)
+	EdwardsCurve(uint32_t compressed)
 	{
-		return *this = a + *this;
+		uint32_t sign = compressed >> 31;
+		x = T(compressed & 0x7FFFFFFF);
+		y = findY(x);
+		if ((y() & 1) != sign)
+			y = -y;
 	}
 	static T findY(T x)
 	{
 		T xx = x * x;
 		T yy = (T(1) - xx) / (T(1) - T(D) * xx);
 		return pow(yy, 1U << 29);
+	}
+	EdwardsCurve<T, D> operator += (EdwardsCurve<T, D> a)
+	{
+		return *this = a + *this;
+	}
+	uint32_t compress() const
+	{
+		uint32_t sign = y() & 1;
+		return x() | (sign << 31);
 	}
 };
 

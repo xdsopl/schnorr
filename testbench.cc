@@ -59,22 +59,6 @@ bool verify(EC fingerprint, uint32_t scalar, uint32_t check, const uint8_t *mess
 	return check == hash(point, message, length);
 }
 
-uint32_t compress(EC point)
-{
-	uint32_t sign = point.y() & 1;
-	return point.x() | (sign << 31);
-}
-
-EC decompress(uint32_t val)
-{
-	uint32_t sign = val >> 31;
-	M31 x(val & 0x7FFFFFFF);
-	M31 y(EC::findY(x));
-	if ((y() & 1) != sign)
-		y = -y;
-	return EC(x, y);
-}
-
 int main(int argc, char **argv)
 {
 	(void)argc; (void)argv;
@@ -118,9 +102,9 @@ int main(int argc, char **argv)
 	uint32_t scalar, check;
 	sign(private_key, rnd_key(), &scalar, &check, message, length);
 	// compression
-	uint32_t fingerprint = compress(public_key);
+	uint32_t fingerprint = public_key.compress();
 	// verification
-	if (!verify(decompress(fingerprint), scalar, check, message, length)) {
+	if (!verify(EC(fingerprint), scalar, check, message, length)) {
 		std::cerr << "verification failed!" << std::endl;
 		return 1;
 	}
