@@ -112,6 +112,18 @@ int main(int argc, char **argv)
 		std::cerr << "verification failed!" << std::endl;
 		return 1;
 	}
+	// breaking
+	if (0) {
+		CM31 tmp(generator);
+		for (uint32_t i = 2; i < order; ++i) {
+			if (public_key == conj(tmp *= generator)) {
+				assert(private_key == i);
+				std::cerr << "found private key after " << i << " iterations" << std::endl;
+				return 0;
+			}
+		}
+		std::cerr << "huh?" << std::endl;
+	}
 	return 0;
 }
 
