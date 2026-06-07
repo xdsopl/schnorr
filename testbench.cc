@@ -128,6 +128,55 @@ int main(int argc, char **argv)
 		}
 		std::cerr << "huh?" << std::endl;
 	}
+	// BSGS
+	if (0) {
+		const uint32_t m = (uint32_t)std::ceil(std::sqrt((double)order));
+		assert(m <= 65536);
+		uint64_t *bs_val = new uint64_t[m];
+		EC baby(M31(0), M31(1));
+		for (uint32_t i = 0; i < m; ++i) {
+			uint64_t val = baby.compress();
+			uint64_t idx = ((val >> 16) ^ val) & 65535;
+			uint64_t num = i;
+			bs_val[i] = (idx << 48) | (num << 32) | val;
+			baby += base;
+		}
+		EC giant = -baby;
+		std::sort(bs_val, bs_val + m);
+		uint32_t *bs_idx = new uint32_t[65536];
+		for (uint32_t i = 0; i < 65536; ++i)
+			bs_idx[i] = 0;
+		for (uint32_t i = 0; i < m; ++i) {
+			uint32_t idx = bs_val[i] >> 48;
+			uint32_t ptr = bs_idx[idx] >> 16;
+			uint32_t cnt = bs_idx[idx] & 65535;
+			if (!cnt)
+				ptr = i;
+			cnt++;
+			bs_idx[idx] = (ptr << 16) | cnt;
+		}
+		EC gamma(public_key);
+		for (uint32_t i = 0; i < m; ++i) {
+			uint32_t val = gamma.compress();
+			uint32_t idx = ((val >> 16) ^ val) & 65535;
+			uint32_t ptr = bs_idx[idx] >> 16;
+			uint32_t cnt = bs_idx[idx] & 65535;
+			for (uint32_t j = ptr; j < ptr + cnt; ++j) {
+				if (uint32_t(bs_val[j] & 0xFFFFFFFF) == val) {
+					uint32_t num = (bs_val[j] >> 32) & 65535;
+					uint32_t key = (i * m + num) % order;
+					assert(private_key == key);
+					std::cerr << "found private key after " << m << " baby and " << i << " giant steps" << std::endl;
+					goto end;
+				}
+			}
+			gamma += giant;
+		}
+		std::cerr << "what?" << std::endl;
+end:
+		delete[] bs_val;
+		delete[] bs_idx;
+	}
 	return 0;
 }
 
