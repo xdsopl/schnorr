@@ -4,10 +4,10 @@ Playing with complex M31 prime field based Schnorr signatures
 Copyright 2026 Ahmet Inan <xdsopl@gmail.com>
 */
 
+#include <cmath>
 #include <random>
 #include <cassert>
 #include <iostream>
-#include <algorithm>
 #include <functional>
 #include "prime_field.hh"
 #include "complex_field.hh"
@@ -127,41 +127,43 @@ int main(int argc, char **argv)
 	}
 	// BSGS
 	if (0) {
-		const uint32_t m = (uint32_t)std::ceil(std::sqrt((double)order));
+		const int m = (int)std::ceil(std::sqrt((double)order));
 		assert(m <= 65536);
-		uint64_t *bs_val = new uint64_t[m];
+		uint64_t *bs_tmp = new uint64_t[m];
 		CM31 baby(M31(1));
-		for (uint32_t i = 0; i < m; ++i) {
-			uint64_t val = compress(baby);
-			uint64_t idx = ((val >> 16) ^ val) & 65535;
-			uint64_t num = i;
-			bs_val[i] = (idx << 48) | (num << 32) | val;
+		for (int i = 0; i < m; ++i) {
+			bs_tmp[i] = uint64_t(i) << 32 | compress(baby);
 			baby *= generator;
 		}
 		CM31 giant = conj(baby);
-		std::sort(bs_val, bs_val + m);
-		uint32_t *bs_idx = new uint32_t[65536];
-		for (uint32_t i = 0; i < 65536; ++i)
-			bs_idx[i] = 0;
-		for (uint32_t i = 0; i < m; ++i) {
-			uint32_t idx = bs_val[i] >> 48;
-			uint32_t ptr = bs_idx[idx] >> 16;
-			uint32_t cnt = bs_idx[idx] & 65535;
-			if (!cnt)
-				ptr = i;
-			cnt++;
-			bs_idx[idx] = (ptr << 16) | cnt;
+		auto index = [](uint32_t val) { return ((val >> 16) ^ val) & 65535; };
+		uint8_t *bs_cnt = new uint8_t[65536];
+		for (int i = 0; i < 65536; ++i)
+			bs_cnt[i] = 0;
+		for (int i = 0; i < m; ++i)
+			bs_cnt[index(bs_tmp[i] & 0xFFFFFFFF)]++;
+		uint16_t *bs_ptr = new uint16_t[65536];
+		bs_ptr[0] = 0;
+		for (int i = 1; i < 65536; ++i)
+			bs_ptr[i] = bs_ptr[i - 1] + bs_cnt[i - 1];
+		for (int i = 0; i < 65536; ++i)
+			bs_cnt[i] = 0;
+		uint64_t *bs_val = new uint64_t[m];
+		for (int i = 0; i < m; ++i) {
+			int idx = index(bs_tmp[i] & 0xFFFFFFFF);
+			bs_val[bs_ptr[idx] + bs_cnt[idx]++] = bs_tmp[i];
 		}
+		delete[] bs_tmp;
 		CM31 gamma(conj(public_key));
-		for (uint32_t i = 0; i < m; ++i) {
+		for (int i = 0; i < m; ++i) {
 			uint32_t val = compress(gamma);
-			uint32_t idx = ((val >> 16) ^ val) & 65535;
-			uint32_t ptr = bs_idx[idx] >> 16;
-			uint32_t cnt = bs_idx[idx] & 65535;
-			for (uint32_t j = ptr; j < ptr + cnt; ++j) {
+			int idx = index(val);
+			int ptr = bs_ptr[idx];
+			int cnt = bs_cnt[idx];
+			for (int j = ptr; j < ptr + cnt; ++j) {
 				if (uint32_t(bs_val[j] & 0xFFFFFFFF) == val) {
 					uint32_t num = (bs_val[j] >> 32) & 65535;
-					uint32_t key = (i * m + num) % order;
+					uint32_t key = (uint64_t(i) * m + num) % order;
 					assert(private_key == key);
 					std::cerr << "found private key after " << m << " baby and " << i << " giant steps" << std::endl;
 					goto end;
@@ -172,7 +174,8 @@ int main(int argc, char **argv)
 		std::cerr << "what?" << std::endl;
 end:
 		delete[] bs_val;
-		delete[] bs_idx;
+		delete[] bs_cnt;
+		delete[] bs_ptr;
 	}
 	return 0;
 }
