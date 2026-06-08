@@ -125,20 +125,13 @@ int main(int argc, char **argv)
 		typedef EdwardsCurve<M31, d> EC;
 		M31 x(2);
 		M31 y(EC::findY(x));
-		std::cerr << "testing EC<" << d << ">(" << x() << ", " << y() << ")";
-		EC gen(x, y), tmp(gen);
-		for (uint32_t i = 1; i; ++i) {
-			assert(tmp.isValid());
-			if (!(i & 0xFFFFFFF))
-				std::cerr << " " << ((100 * (i >> 28)) / 16) << "%";
-			tmp += gen;
-			if (tmp == gen) {
-				std::cerr << std::endl << "order = " << i << " twist = " << (2 * (M31::P + 1LL) - i) << std::endl;
-				return 0;
-			}
-		}
-		std::cerr << std::endl << "rats!" << std::endl;
-		return 1;
+		std::cerr << "testing EC<" << d << ">(" << x() << ", " << y() << ")" << std::endl;
+		int64_t bound = M31::P + 1 + (int64_t)std::ceil(2 * std::sqrt((double)M31::P));
+		int64_t fourth = bsgs(EC(x, y), EC(-M31(1), M31(0)), bound / 4);
+		assert(fourth >= 0);
+		int order = 4 * fourth;
+		std::cerr << std::endl << "order = " << order << " twist = " << (2 * (M31::P + 1LL) - order) << std::endl;
+		return 0;
 	}
 	assert((total / 4) * generator == EC(-M31(1), M31(0)));
 	assert((total / 2) * generator == EC(M31(0), -M31(1)));
