@@ -67,6 +67,7 @@ int main(int argc, char **argv)
 	(void)argc; (void)argv;
 	if (0) {
 		const int d = 7;
+		assert(pow(M31(d), (M31::P-1)/2) == -M31(1));
 		typedef EdwardsCurve<M31, d> EC;
 		M31 x(2);
 		M31 y(EC::findY(x));
