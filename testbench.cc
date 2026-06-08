@@ -16,7 +16,7 @@ typedef CODE::PrimeField<uint32_t, 0x7FFFFFFF> M31;
 typedef EdwardsCurve<M31, 7> EC;
 static const EC generator(M31(2), M31(715827882));
 static const int cofactor_power = 5;
-static const uint32_t cofactor = 1 << 5;
+static const uint32_t cofactor = 1 << cofactor_power;
 static const EC base = cofactor * generator;
 static const uint32_t order = 33553909;
 static const uint32_t total = order << cofactor_power;
@@ -58,7 +58,7 @@ void sign(uint32_t private_key, uint32_t nonce, uint32_t *scalar, uint32_t *chec
 
 bool verify(EC fingerprint, uint32_t scalar, uint32_t check, const uint8_t *message, int length)
 {
-	EC point = (scalar * base) - (check * fingerprint);
+	EC point = (scalar * base) + (check * fingerprint);
 	return check == hash(point, message, length);
 }
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 	auto rnd_key = std::bind(uni_dis(2, order-1), rnd_gen);
 	// keypair
 	uint32_t private_key = rnd_key();
-	EC public_key = private_key * base;
+	EC public_key = -(private_key * base);
 	// message
 	const int length = 123;
 	uint8_t message[length];
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
 	if (0) {
 		EC tmp(base);
 		for (uint32_t i = 2; i < order; ++i) {
-			if (public_key == (tmp += base)) {
+			if (-public_key == (tmp += base)) {
 				assert(private_key == i);
 				std::cerr << "found private key after " << i << " iterations" << std::endl;
 				return 0;
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
 			bs_val[bs_ptr[idx] + bs_cnt[idx]++] = bs_tmp[i];
 		}
 		delete[] bs_tmp;
-		EC gamma(public_key);
+		EC gamma(-public_key);
 		for (int i = 0; i < m; ++i) {
 			uint32_t val = gamma.compress();
 			int idx = index(val);
