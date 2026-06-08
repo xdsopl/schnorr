@@ -140,7 +140,9 @@ int main(int argc, char **argv)
 		std::cerr << std::endl << "rats!" << std::endl;
 		return 1;
 	}
+	assert((total / 4) * generator == EC(-M31(1), M31(0)));
 	assert((total / 2) * generator == EC(M31(0), -M31(1)));
+	assert(((total / 4) * 3) * generator == EC(M31(1), M31(0)));
 	assert(total * generator == EC());
 	if (0) {
 		EC tmp(base);
