@@ -62,6 +62,7 @@ bool verify(EC fingerprint, uint32_t scalar, uint32_t check, const uint8_t *mess
 	return check == hash(point, message, length);
 }
 
+template <typename EC>
 int64_t bsgs(EC base, EC target, int64_t bound)
 {
 	const int m = (int)std::ceil(std::sqrt((double)bound));
