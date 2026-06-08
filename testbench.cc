@@ -107,9 +107,11 @@ int main(int argc, char **argv)
 	uint32_t scalar, check;
 	sign(private_key, rnd_key(), &scalar, &check, message, length);
 	// compression
-	uint32_t fingerprint = compress(public_key);
+	uint32_t compressed = compress(public_key);
+	// decompression
+	CM31 fingerprint = decompress(compressed);
 	// verification
-	if (!verify(decompress(fingerprint), scalar, check, message, length)) {
+	if (!verify(fingerprint, scalar, check, message, length)) {
 		std::cerr << "verification failed!" << std::endl;
 		return 1;
 	}
