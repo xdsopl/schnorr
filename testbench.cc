@@ -58,7 +58,7 @@ void sign(uint32_t private_key, uint32_t nonce, uint32_t *scalar, uint32_t *chec
 
 bool verify(EC fingerprint, uint32_t scalar, uint32_t check, const uint8_t *message, int length)
 {
-	EC point = (scalar * base) + (check * fingerprint);
+	EC point = (scalar * base) - (check * fingerprint);
 	return check == hash(point, message, length);
 }
 
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 	auto rnd_key = std::bind(uni_dis(2, order-1), rnd_gen);
 	// keypair
 	uint32_t private_key = rnd_key();
-	EC public_key = -(private_key * base);
+	EC public_key = private_key * base;
 	// message
 	const int length = 123;
 	uint8_t message[length];
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 	if (0) {
 		EC tmp(base);
 		for (uint32_t i = 2; i < order; ++i) {
-			if (-public_key == (tmp += base)) {
+			if (public_key == (tmp += base)) {
 				assert(private_key == i);
 				std::cerr << "found private key after " << i << " iterations" << std::endl;
 				return 0;
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 	}
 	// BSGS
 	if (0) {
-		uint64_t key = bsgs(base, -public_key, order);
+		uint64_t key = bsgs(base, public_key, order);
 		assert(key >= 2 && key < order);
 		assert(private_key == uint32_t(key));
 	}
