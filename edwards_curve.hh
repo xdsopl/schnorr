@@ -10,6 +10,7 @@ template <typename T, int D>
 struct EdwardsCurve
 {
 	T x, y;
+	EdwardsCurve() : x(0), y(1) {}
 	EdwardsCurve(T x, T y) : x(x), y(y) {}
 	EdwardsCurve(uint32_t compressed)
 	{
@@ -82,7 +83,7 @@ static EdwardsCurve<T, D> operator - (EdwardsCurve<T, D> a, EdwardsCurve<T, D> b
 template <typename T, int D>
 static EdwardsCurve<T, D> operator * (uint32_t a, EdwardsCurve<T, D> b)
 {
-	EdwardsCurve<T, D> t(T(0), T(1));
+	EdwardsCurve<T, D> t;
 	for (;a; a >>= 1, b += b)
 		if (a & 1)
 			t += b;

@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	assert((total / 2) * generator == EC(M31(0), -M31(1)));
-	assert(total * generator == EC(M31(0), M31(1)));
+	assert(total * generator == EC());
 	if (0) {
 		EC tmp(base);
 		for (uint32_t i = 1; i < order; ++i)
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 	EC fingerprint(compressed);
 	// validation
 	assert(fingerprint.isValid());
-	assert(order * fingerprint == EC(M31(0), M31(1)));
+	assert(order * fingerprint == EC());
 	assert(scalar < order);
 	// verification
 	if (!verify(fingerprint, scalar, check, message, length)) {
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 		const int m = (int)std::ceil(std::sqrt((double)order));
 		assert(m <= 65536);
 		uint64_t *bs_tmp = new uint64_t[m];
-		EC baby(M31(0), M31(1));
+		EC baby;
 		for (int i = 0; i < m; ++i) {
 			bs_tmp[i] = uint64_t(i) << 32 | baby.compress();
 			baby += base;
