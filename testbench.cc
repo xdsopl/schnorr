@@ -54,7 +54,7 @@ void sign(uint32_t private_key, uint32_t nonce, uint32_t *scalar, uint32_t *chec
 
 bool verify(CM31 fingerprint, uint32_t scalar, uint32_t check, const uint8_t *message, int length)
 {
-	CM31 point = pow(generator, scalar) * pow(fingerprint, check);
+	CM31 point = pow(generator, scalar) * pow(conj(fingerprint), check);
 	return check == hash(point, message, length);
 }
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 	auto rnd_key = std::bind(dist(2, order-1), gen);
 	// keypair
 	uint32_t private_key = rnd_key();
-	CM31 public_key = conj(pow(generator, private_key));
+	CM31 public_key = pow(generator, private_key);
 	// message
 	const int length = 123;
 	uint8_t message[length];
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	if (0) {
 		CM31 tmp(generator);
 		for (uint32_t i = 2; i < order; ++i) {
-			if (conj(public_key) == (tmp *= generator)) {
+			if (public_key == (tmp *= generator)) {
 				assert(private_key == i);
 				std::cerr << "found private key after " << i << " iterations" << std::endl;
 				return 0;
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 			bs_val[bs_ptr[idx] + bs_cnt[idx]++] = bs_tmp[i];
 		}
 		delete[] bs_tmp;
-		CM31 gamma(conj(public_key));
+		CM31 gamma(public_key);
 		for (int i = 0; i < m; ++i) {
 			uint32_t val = compress(gamma);
 			int idx = index(val);
