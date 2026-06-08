@@ -112,9 +112,15 @@ int main(int argc, char **argv)
 	uint32_t scalar, check;
 	sign(private_key, rnd_key(), &scalar, &check, message, length);
 	// compression
-	uint32_t fingerprint = public_key.compress();
+	uint32_t compressed = public_key.compress();
+	// decompression
+	EC fingerprint(compressed);
+	// validation
+	assert(fingerprint.isValid());
+	assert(order * fingerprint == EC(M31(0), M31(1)));
+	assert(scalar < order);
 	// verification
-	if (!verify(EC(fingerprint), scalar, check, message, length)) {
+	if (!verify(fingerprint, scalar, check, message, length)) {
 		std::cerr << "verification failed!" << std::endl;
 		return 1;
 	}
